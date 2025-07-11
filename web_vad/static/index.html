@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech-to-Speech AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+        }
+
+        .voice-control {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .voice-control h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 150px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn.recording {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            animation: pulse 1s infinite;
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 15px;
+            color: #856404;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 15px;
+            height: 15px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        .chat-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.ai {
+            background: white;
+            border: 2px solid #e9ecef;
+            color: #333;
+        }
+
+        .message-header {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        .audio-player {
+            margin-top: 12px;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            border-radius: 10px;
+            height: 40px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .btn {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 AI Voice Assistant</h1>
+            <p>พูดคุยกับ AI แบบธรรมชาติ ด้วย Voice Activity Detection</p>
+        </div>
+
+        <div class="main-content">
+            <div class="status-bar">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">กำลังเชื่อมต่อ...</span>
+            </div>
+
+            <div class="voice-control">
+                <h3>🎙️ Voice Control</h3>
+                <button class="btn" id="startRecordingBtn">เริ่มพูด</button>
+                <!-- <button class="btn" id="stopRecordingBtn" disabled>หยุดพูด</button> -->
+                <div class="recording-indicator" id="recordingIndicator">
+                    <div class="recording-dot"></div>
+                    <span>กำลังฟังเสียง... พูดได้เลย!</span>
+                </div>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="message ai">
+                    <div class="message-header">🤖 AI Assistant</div>
+                    <div>สวัสดี! ผมพร้อมที่จะช่วยเหลือคุณแล้ว กดปุ่ม "เริ่มพูด" แล้วพูดได้เลย</div>
+                </div>
+            </div>
+
+            <div id="messageContainer"></div>
+        </div>
+
+        <div class="footer">
+            <p>Powered by Azure OpenAI Realtime API + VAD Technology</p>
+        </div>
+    </div>
+
+    <script>
+        class SpeechToSpeechApp {
+            constructor() {
+                this.ws = null;
+                this.clientId = this.generateClientId();
+                this.isConnected = false;
+                this.isRecording = false;
+                this.audioChunks = [];
+                this.currentAudioMessage = null;
+                
+                this.initializeElements();
+                this.initializeWebSocket();
+                this.bindEvents();
+            }
+
+            generateClientId() {
+                return 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            initializeElements() {
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.statusText = document.getElementById('statusText');
+                this.startRecordingBtn = document.getElementById('startRecordingBtn');
+                this.stopRecordingBtn = document.getElementById('stopRecordingBtn');
+                this.recordingIndicator = document.getElementById('recordingIndicator');
+                this.chatContainer = document.getElementById('chatContainer');
+                this.messageContainer = document.getElementById('messageContainer');
+            }
+
+            initializeWebSocket() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws/${this.clientId}`;
+                
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    this.updateStatus('connected', 'เชื่อมต่อสำเร็จ - พร้อมใช้งาน');
+                };
+                
+                this.ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    this.handleWebSocketMessage(data);
+                };
+                
+                this.ws.onclose = () => {
+                    this.updateStatus('disconnected', 'การเชื่อมต่อถูกปิด');
+                    this.isConnected = false;
+                    this.disableRecording();
+                };
+                
+                this.ws.onerror = (error) => {
+                    this.updateStatus('error', 'เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                    console.error('WebSocket error:', error);
+                };
+            }
+
+            bindEvents() {
+                this.startRecordingBtn.addEventListener('click', () => {
+                    this.startRecording();
+                });
+
+                this.stopRecordingBtn.addEventListener('click', () => {
+                    this.stopRecording();
+                });
+            }
+
+            updateStatus(status, message) {
+                this.statusText.textContent = message;
+                this.statusIndicator.className = 'status-indicator ' + status;
+                this.isConnected = status === 'connected';
+            }
+
+            startRecording() {
+                if (!this.isConnected) {
+                    this.showMessage('error', 'กรุณารอการเชื่อมต่อก่อนเริ่มบันทึกเสียง');
+                    return;
+                }
+
+                this.ws.send(JSON.stringify({
+                    type: 'start_recording'
+                }));
+
+                this.isRecording = true;
+                this.startRecordingBtn.disabled = true;
+                this.stopRecordingBtn.disabled = false;
+                this.recordingIndicator.classList.add('active');
+                this.startRecordingBtn.classList.add('recording');
+                
+                // Add user message indicating recording
+                this.addMessage('user', '🎤 กำลังพูด...');
+            }
+
+            stopRecording() {
+                this.ws.send(JSON.stringify({
+                    type: 'stop_recording'
+                }));
+
+                this.disableRecording();
+            }
+
+            disableRecording() {
+                this.isRecording = false;
+                this.startRecordingBtn.disabled = false;
+                this.stopRecordingBtn.disabled = true;
+                this.recordingIndicator.classList.remove('active');
+                this.startRecordingBtn.classList.remove('recording');
+            }
+
+            handleWebSocketMessage(data) {
+                switch (data.type) {
+                    case 'connection_status':
+                        this.updateStatus(data.status, data.message);
+                        break;
+                    
+                    case 'recording_status':
+                        this.showMessage('success', data.message);
+                        if (data.status === 'stopped') {
+                            this.disableRecording();
+                        }
+                        break;
+                    
+                    case 'text_response':
+                        this.handleTextResponse(data.text);
+                        break;
+                    
+                    case 'error':
+                        this.showMessage('error', data.message);
+                        this.disableRecording();
+                        break;
+                    case 'audio_response_done':
+                        this.disableRecording(); // reset ปุ่ม
+                        break;
+                    case 'audio_chunk':
+                        // เล่นเสียง base64 WAV อัตโนมัติ
+                        if (data.audio) {
+                            playBase64Wav(data.audio);
+                        }
+                        break;
+                }
+            }
+
+            handleTextResponse(text) {
+                // Remove the "กำลังพูด..." message and add AI response
+                const messages = this.chatContainer.querySelectorAll('.message');
+                if (messages.length > 0) {
+                    const lastMessage = messages[messages.length - 1];
+                    if (lastMessage.classList.contains('user') && lastMessage.textContent.includes('กำลังพูด')) {
+                        lastMessage.remove();
+                    }
+                }
+                
+                this.addMessage('ai', text);
+            }
+
+            addMessage(sender, content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const header = document.createElement('div');
+                header.className = 'message-header';
+                header.textContent = sender === 'user' ? '👤 คุณ' : '🤖 AI Assistant';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.innerHTML = content; // <-- เปลี่ยนตรงนี้
+                
+                messageDiv.appendChild(header);
+                messageDiv.appendChild(contentDiv);
+                
+                this.chatContainer.appendChild(messageDiv);
+                this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+                
+                // Set current audio message for AI responses
+                if (sender === 'ai') {
+                    this.currentAudioMessage = messageDiv;
+                }
+            }
+
+            showMessage(type, message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+                messageDiv.textContent = message;
+                
+                this.messageContainer.appendChild(messageDiv);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 5000);
+            }
+        }
+
+        // เพิ่มฟังก์ชันสำหรับเล่น base64 WAV ที่รับมาจาก backend
+        function playBase64Wav(wavBase64) {
+            const audio = new Audio("data:audio/wav;base64," + wavBase64);
+            audio.autoplay = true;
+            audio.play().catch(e => console.error('Audio play error:', e));
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new SpeechToSpeechApp();
+        });
+    </script>
+</body>
+</html> 
