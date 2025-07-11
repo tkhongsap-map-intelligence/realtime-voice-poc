@@ -122,40 +122,41 @@ class RealtimeOpenAIClient:
             raise ConnectionError("WebSocket connection failed.")
         print("WebSocket connection established.")
 
-    def send_prompt_with_voice(self, prompt: str, base64_string: str, modalities: Optional[list] = None):
-        """
-        Send a prompt with both text and audio (base64) to the model.
-        """
+    def send_prompt(self, prompt: str, audio_base64: Optional[str] = None, modalities: Optional[list] = None):
+        """Send a prompt with optional audio input to the model."""
         if not self._is_connected or self._ws is None:
             print("Not connected to WebSocket. Please call connect() first.")
             return
+
         if modalities is None:
-            modalities = ['text', 'audio']
-        self._total_audio_data = ''  # Reset audio buffer
-        # Build and send message event
+            modalities = ["text", "audio"]
+
+        self._total_audio_data = ""  # Reset audio buffer
+
+        content = [{"type": "input_text", "text": prompt}]
+        if audio_base64:
+            content.append({"type": "input_audio", "audio": audio_base64})
+
         event_message = {
             "type": "conversation.item.create",
             "item": {
                 "type": "message",
                 "role": "user",
-                "content": [
-                    {"type": "input_text", "text": prompt},
-                    {"type": "input_audio", "audio": base64_string}
-                ]
-            }
+                "content": content,
+            },
         }
         self._ws.send(json.dumps(event_message))
 
-        # Request response with specified modalities
         event_response = {
             "type": "response.create",
-            "response": {
-                "modalities": modalities,
-                # "max_output_tokens": 'inf'
-                         }
+            "response": {"modalities": modalities},
         }
         self._ws.send(json.dumps(event_response))
         print("Prompt sent. Waiting for response...")
+
+    def send_prompt_with_voice(self, prompt: str, base64_string: str, modalities: Optional[list] = None):
+        """Backward compatible wrapper for sending text and audio."""
+        return self.send_prompt(prompt, audio_base64=base64_string, modalities=modalities)
 
     def send_prompt_only_text(self, prompt: str, modalities: Optional[list] = None):
         """
