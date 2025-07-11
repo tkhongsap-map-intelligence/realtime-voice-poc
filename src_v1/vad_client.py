@@ -19,7 +19,7 @@ class VADRealtimeClient(RealtimeOpenAIClient):
         """
         Record audio with VAD - stops automatically when no speech detected
         """
-        print("�� เริ่มฟังเสียง (พูดได้เลย)...")
+        print("🎤 เริ่มฟังเสียง (พูดได้เลย)...")
         
         audio_buffer = b''
         last_speech_time = time.time()
