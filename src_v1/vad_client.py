@@ -82,9 +82,9 @@ class VADRealtimeClient(RealtimeOpenAIClient):
             
             # Send to AI
             self.response_done_event.clear()
-            self.send_prompt_with_voice(
-                base64_string=base64_audio,
-                prompt=prompt
+            self.send_prompt(
+                prompt=prompt,
+                audio_base64=base64_audio
             )
             
             # Wait for response

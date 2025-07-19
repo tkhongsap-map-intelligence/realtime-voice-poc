@@ -26,12 +26,8 @@ class AudioRecorder:
         if original_fs == target_fs:
             return audio_data
             
-        # Calculate resampling ratio
-        ratio = target_fs / original_fs
-        new_length = int(len(audio_data) * ratio)
-        
-        # Resample using scipy
-        resampled = signal.resample(audio_data, new_length)
+        # More efficient polyphase resampling
+        resampled = signal.resample_poly(audio_data, target_fs, original_fs)
         return resampled
 
     def record_with_vad_auto_send(self, client, prompt="", max_duration=30, silence_threshold=1.0):
@@ -86,9 +82,9 @@ class AudioRecorder:
                                     
                                     # Send to server
                                     client.response_done_event.clear()
-                                    client.send_prompt_with_voice(
-                                        base64_string=audio_content,
+                                    client.send_prompt(
                                         prompt=prompt,
+                                        audio_base64=audio_content,
                                     )
                                     
                                     # Wait for response
